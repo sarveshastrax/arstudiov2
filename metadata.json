@@ -1,0 +1,8 @@
+{
+  "name": "ADHVYK AR STUDIO v2.0",
+  "description": "Production-grade WebAR SaaS platform for creating immersive augmented reality experiences.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
