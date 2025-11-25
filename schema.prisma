@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum ProjectStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ProjectVisibility {
+  PUBLIC
+  PRIVATE
+  UNLISTED
+}
+
+enum ExperienceType {
+  PLANE
+  IMAGE
+  FACE
+  GEO
+}
+
+enum AssetType {
+  MODEL
+  IMAGE
+  VIDEO
+  AUDIO
+}
+
+enum PrimitiveType {
+  CUBE
+  SPHERE
+  CYLINDER
+  PLANE
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  password  String
+  name      String
+  role      UserRole  @default(USER)
+  avatarUrl String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  projects  Project[]
+}
+
+model Project {
+  id             String            @id @default(uuid())
+  name           String
+  slug           String            @unique
+  thumbnail      String?
+  status         ProjectStatus     @default(DRAFT)
+  visibility     ProjectVisibility @default(PRIVATE)
+  experienceType ExperienceType    @default(PLANE)
+  targetImage    String?
+  geoLat         Float?
+  geoLng         Float?
+  views          Int               @default(0)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  userId         String
+  user           User              @relation(fields: [userId], references: [id])
+  sceneObjects   SceneObject[]
+}
+
+model Asset {
+  id        String   @id @default(uuid())
+  name      String
+  type      AssetType
+  url       String
+  thumbnail String?
+  size      String
+  key       String   // S3 Key
+  createdAt DateTime @default(now())
+}
+
+model SceneObject {
+  id            String         @id @default(uuid())
+  name          String
+  type          String         // 'PRIMITIVE', 'TEXT', or AssetType
+  primitiveType PrimitiveType?
+  content       String?        // For Text
+  fontSize      Float?
+  
+  // Transform
+  posX          Float          @default(0)
+  posY          Float          @default(0)
+  posZ          Float          @default(0)
+  rotX          Float          @default(0)
+  rotY          Float          @default(0)
+  rotZ          Float          @default(0)
+  scaleX        Float          @default(1)
+  scaleY        Float          @default(1)
+  scaleZ        Float          @default(1)
+  
+  color         String?
+  visible       Boolean        @default(true)
+  
+  // Media Props
+  videoLoop     Boolean?       @default(true)
+  videoAuto     Boolean?       @default(true)
+  chromaKey     Boolean?       @default(false)
+  chromaColor   String?
+  threshold     Float?
+  
+  audioLoop     Boolean?       @default(false)
+  audioAuto     Boolean?       @default(true)
+  audioVol      Float?         @default(1)
+
+  projectId     String
+  project       Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assetId       String?
+}
